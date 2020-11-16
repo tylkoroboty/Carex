@@ -47,6 +47,7 @@ class Point {
 		Point();
 		void SetX(float x);
 		void SetY(float y);
+		void Set(float x, float y);
 		float GetX();
 		float GetY();
 		Point operator+(Point &);
@@ -78,6 +79,11 @@ Point Point::operator-(Point & rhs){
 	return tempPoint;
 }
 
+void Point::Set(float x, float y){
+	itsX = x;
+	itsY = y;
+}
+
 void Point::SetX(float x){
 	itsX = x;
 }
@@ -104,7 +110,6 @@ class Pixel : public Point {
 /* ------------------------------------------ VECTOR ------------------------------------*/
 class Vector{
 	public:
-		Vector();
 		void SetA(Point A);
 		void SetA(float Ax, float Ay);
 		void SetB(Point B);
@@ -315,6 +320,10 @@ class ILI9341 {
 
 	void Draw(Pixel Pixel);
 	void Draw(Line Line);
+	void Draw(Rectangle Rectangle);
+
+	void Erase(Pixel &Pixel, Color Kolor);
+	void Erase(Line &Line, Color Kolor);
 
 	private:
 
@@ -394,6 +403,37 @@ void ILI9341::Draw(Line L)
 
 		}
 	}
+
+void ILI9341::Erase(Pixel &Pixel, Color Kolor){
+	//Chujowe rozwiązanie
+	Color tempColor;
+	tempColor = Pixel.Kolor;
+	Pixel.Kolor = Kolor;
+	Draw(Pixel);
+	Pixel.Kolor = tempColor;
+}
+
+void ILI9341::Erase(Line &Line, Color Kolor){
+	//Chujowe rozwiązanie
+	Color tempColor;
+	tempColor = Line.Kolor;
+	Line.Kolor = Kolor;
+	Draw(Line);
+	Line.Kolor = tempColor;
+}
+
+void ILI9341::Draw(Rectangle BG){
+
+	Line tempLine;
+	tempLine.Kolor=BG.Kolor;
+
+	for(int x = BG.LeftUp.GetX(); x<BG.RightDown.GetX();++x)
+	{
+		tempLine.SetA(x,BG.LeftUp.GetY());
+		tempLine.SetB(x,BG.RightDown.GetY());
+		Draw(tempLine);
+	}
+}
 
 void ILI9341::CSX_ON(){
 	HAL_GPIO_WritePin(csx_port, csx_pin, GPIO_PIN_RESET);

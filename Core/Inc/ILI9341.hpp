@@ -36,6 +36,7 @@ class Point {
 	public:
 		void SetX(float x);
 		void SetY(float y);
+		void Set(float x, float y);
 		float GetX();
 		float GetY();
 		Point operator+(Point &);
@@ -81,6 +82,17 @@ class Line: public Vector{
 	private:
 };
 
+class Rectangle{
+	public:
+		Color Kolor;
+		Color Gradient;
+		Point LeftUp;
+		Point RightDown;
+		void SetFill(bool isFilled);
+	private:
+		bool itsFill = 1;
+};
+
 class ILI9341 {
 	public:
 
@@ -112,5 +124,8 @@ class ILI9341 {
 
 	void Draw(Pixel Pixel);
 	void Draw(Line Line);
+	void Draw(Rectangle Rectangle);
 
+	void Erase(Pixel &Pixel, Color Kolor);
+	void Erase(Line &Line, Color Kolor);
 };
