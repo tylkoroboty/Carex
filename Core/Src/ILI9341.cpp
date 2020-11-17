@@ -105,7 +105,19 @@ class Pixel : public Point {
 	public:
 
 		Color Kolor;
+		void ChangeSize(uint8_t size);
+		uint8_t GetSize();
+	private:
+		uint8_t itsSize=1;
 };
+
+void Pixel::ChangeSize(uint8_t size){
+	itsSize = size;
+}
+
+uint8_t Pixel::GetSize(){
+	return itsSize;
+}
 
 /* ------------------------------------------ VECTOR ------------------------------------*/
 class Vector{
@@ -241,9 +253,21 @@ class Line : public Vector{
 	public:
 		Color Kolor;
 		void ChangeDir();
+		void SetSize(uint8_t size);
+		uint8_t GetSize();
+	private:
+		uint8_t itsSize = 1;
 };
 
-	void Line::ChangeDir(){
+void Line::SetSize(uint8_t size){
+	itsSize = size;
+	}
+
+uint8_t Line::GetSize(){
+	return itsSize;
+}
+
+void Line::ChangeDir(){
 		Point tempPoint;
 
 		tempPoint = GetA();
@@ -337,17 +361,34 @@ class ILI9341 {
 		void DCX(uint8_t CD);
 };
 
-void ILI9341::Draw(Pixel Pixel){
-	if(Pixel.GetX()<320 && Pixel.GetY()<240){
+void ILI9341::Draw(Pixel Pix){
 
+	if(Pix.GetX()<320 && Pix.GetY()<240){
+		Line tempLine;
+		tempLine.SetSize(1);
+		tempLine.Kolor = Pix.Kolor;
 
-	X_Set(Pixel.GetX(), Pixel.GetX()+1);
-	Y_Set(Pixel.GetY(), Pixel.GetY()+1);
+		/* Rysujemy okrąg o środku Pixel i promieniu size */
+		int xs,xe,ys,ye,temp;
+		xs = Pix.GetX()-(Pix.GetSize()-1);
+		xe = Pix.GetX()+(Pix.GetSize()-1);
+
+		for(int x=xs; x<xe; ++x){
+			temp = sqrt((Pix.GetSize()*Pix.GetSize())-(x-Pix.GetX())*(x-Pix.GetX()));
+			ys=Pix.GetY()+temp;
+			ye=Pix.GetY()-temp;
+			tempLine.SetA(x, ys);
+			tempLine.SetB(x, ye);
+			Draw(tempLine);
+			}
+
+	X_Set(Pix.GetX(), Pix.GetX()+1);
+	Y_Set(Pix.GetY(), Pix.GetY()+1);
 
 	Write(REG_MEMORY_WRITE, 0, 0);
 
 	Write(REG_MEMORY_WRITE_CONTINUE, 0, 0);
-	SendData(Pixel.Kolor, 1);
+	SendData(Pix.Kolor, 1);
 	}
 }
 
@@ -381,6 +422,7 @@ void ILI9341::Draw(Line L)
 				t = (float)(x - L.GetA().GetX())/(float)Dif.GetX();
 				y = L.GetA().GetY() + t*Dif.GetY();
 
+				Pixel.ChangeSize(L.GetSize());
 				Pixel.SetX(x);
 				Pixel.SetY(y);
 				Draw(Pixel);
@@ -395,6 +437,7 @@ void ILI9341::Draw(Line L)
 				t = float(y - L.GetA().GetY())/(float)Dif.GetY();
 				x = L.GetA().GetX() + t*Dif.GetX();
 
+				Pixel.ChangeSize(L.GetSize());
 				Pixel.SetX(x);
 				Pixel.SetY(y);
 				Draw(Pixel);

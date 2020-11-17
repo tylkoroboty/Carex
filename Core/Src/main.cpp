@@ -135,20 +135,23 @@ int main(void)
   Line Linia2;
   Line Linia3;
 
+ Linia1.SetSize(1);
  Linia1.SetA(100,50);
  Linia1.SetB(125,100);
  Linia1.Kolor.SetColor(255, 0, 255);
 
+ Linia2.SetSize(1);
  Linia2.SetA(125,100);
  Linia2.SetB(75,100);
  Linia2.Kolor.SetColor(0, 255, 255);
 
+ Linia3.SetSize(1);
  Linia3.SetA(75,100);
  Linia3.SetB(100,50);
  Linia3.Kolor.SetColor(255, 255, 0);
 
  Rectangle Background;
- Background.Kolor.SetColor(5, 5, 5);
+ Background.Kolor.SetColor(255, 255, 255);
  Background.LeftUp.Set(0, 0);
  Background.RightDown.Set(320, 240);
 
@@ -166,7 +169,7 @@ int main(void)
 	  LCD1.Draw(Linia2);
 	  LCD1.Draw(Linia3);
 
-	  HAL_Delay(20);
+	  HAL_Delay(2);
 
 	  LCD1.Erase(Linia1, Background.Kolor);
 	  LCD1.Erase(Linia2, Background.Kolor);

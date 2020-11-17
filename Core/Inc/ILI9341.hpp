@@ -50,7 +50,8 @@ class Pixel: public Point{
 	public:
 
 		Color Kolor;
-	protected:
+		void SetSize(uint8_t size);
+		uint8_t GetSize();
 };
 
 class Vector{
@@ -78,8 +79,8 @@ class Line: public Vector{
 		Color Kolor;
 
 		void ChangeDir();
-
-	private:
+		void SetSize(uint8_t size);
+		uint8_t GetSize();
 };
 
 class Rectangle{
