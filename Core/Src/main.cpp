@@ -128,8 +128,8 @@ int main(void)
 
   LCD1.PowerON();
 
-  Point Axis1;
-  Axis1.Set(100, 125);
+  Pixel Axis1;
+  Axis1.Set(150, 125);
 
   Line Linia1;
   Line Linia2;
@@ -150,34 +150,29 @@ int main(void)
  Linia3.SetB(100,50);
  Linia3.Kolor.SetColor(255, 255, 0);
 
- Rectangle Background;
- Background.Kolor.SetColor(255, 255, 255);
- Background.LeftUp.Set(0, 0);
- Background.RightDown.Set(320, 240);
+ LCD1.SetBackgroundColor(0, 0, 0);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
- LCD1.Draw(Background);
+
   while (1)
   {
 	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
 
-	  LCD1.Draw(Linia1);
-	  LCD1.Draw(Linia2);
-	  LCD1.Draw(Linia3);
+	  Linia1.Draw(LCD1);
+	  Linia2.Draw(LCD1);
+	  Linia3.Draw(LCD1);
 
-	  HAL_Delay(2);
+	  Linia1.Erase(LCD1);
+	  Linia2.Erase(LCD1);
+	  Linia3.Erase(LCD1);
 
-	  LCD1.Erase(Linia1, Background.Kolor);
-	  LCD1.Erase(Linia2, Background.Kolor);
-	  LCD1.Erase(Linia3, Background.Kolor);
-
-	  Linia1.Rotate(5, Axis1);
-	  Linia2.Rotate(5, Axis1);
-	  Linia3.Rotate(5, Axis1);
+	  Linia1.Rotate(-10, Axis1);
+	  Linia2.Rotate(-10, Axis1);
+	  Linia3.Rotate(-10, Axis1);
 
     /* USER CODE END WHILE */
 

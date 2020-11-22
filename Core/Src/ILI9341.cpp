@@ -7,11 +7,11 @@
 
 #include "stm32f4xx_hal.h"
 #include <math.h>
-/* Obsługa wyświetlacza high level */
 
 /* --------------------------COLOR---------------------*/
 class Color{
 	public:
+		Color();
 		void SetColor (uint8_t Red, uint8_t Green, uint8_t Blue);
 		uint8_t GetRed();
 		uint8_t GetGreen();
@@ -21,6 +21,9 @@ class Color{
 		uint8_t itsGreen = 0;
 		uint8_t itsBlue = 0;
 };
+
+Color::Color(){
+}
 
 void Color::SetColor(uint8_t R, uint8_t G, uint8_t B){
 	itsRed = R;
@@ -38,258 +41,6 @@ uint8_t Color::GetGreen(){
 
 uint8_t Color::GetBlue(){
 	return itsBlue;
-}
-
-/* -------------------------- POINT --------------------*/
-class Point {
-	public:
-
-		Point();
-		void SetX(float x);
-		void SetY(float y);
-		void Set(float x, float y);
-		float GetX();
-		float GetY();
-		Point operator+(Point &);
-		Point operator-(Point &);
-	protected:
-		float itsX;
-		float itsY;
-};
-
-Point::Point(){
-	itsX =0;
-	itsY =0;
-		}
-
-
-Point Point::operator+(Point & rhs){
-	Point tempPoint;
-	tempPoint.SetX(itsX + rhs.GetX());
-	tempPoint.SetY(itsY + rhs.GetY());
-
-	return tempPoint;
-}
-
-Point Point::operator-(Point & rhs){
-	Point tempPoint;
-	tempPoint.SetX(itsX - rhs.GetX());
-	tempPoint.SetY(itsY - rhs.GetY());
-
-	return tempPoint;
-}
-
-void Point::Set(float x, float y){
-	itsX = x;
-	itsY = y;
-}
-
-void Point::SetX(float x){
-	itsX = x;
-}
-void Point::SetY(float y){
-	itsY = y;
-}
-
-float Point::GetX(){
-	return itsX;
-}
-
-float Point::GetY(){
-	return itsY;
-}
-
-
-/* ------------------------------------------------------- PIXEL -------------------*/
-class Pixel : public Point {
-	public:
-
-		Color Kolor;
-		void ChangeSize(uint8_t size);
-		uint8_t GetSize();
-	private:
-		uint8_t itsSize=1;
-};
-
-void Pixel::ChangeSize(uint8_t size){
-	itsSize = size;
-}
-
-uint8_t Pixel::GetSize(){
-	return itsSize;
-}
-
-/* ------------------------------------------ VECTOR ------------------------------------*/
-class Vector{
-	public:
-		void SetA(Point A);
-		void SetA(float Ax, float Ay);
-		void SetB(Point B);
-		void SetB(float Bx, float By);
-
-		Point GetA();
-		Point GetB();
-		float GetL();
-		float GetAlpha();
-		void Rotate(double angle, Point axis);
-
-		Vector operator+ (Vector &);
-		Vector operator- (Vector &);
-	protected:
-		Point itsA;
-		Point itsB;
-};
-
-Vector Vector::operator+(Vector & rhs){
-	Vector tempVector;
-	tempVector.SetA(itsA + rhs.itsA);
-	tempVector.SetB(itsB + rhs.itsB);
-
-	return tempVector;
-}
-
-Vector Vector::operator-(Vector & rhs){
-	Vector tempVector;
-	tempVector.SetA(itsA - rhs.itsA);
-	tempVector.SetB(itsB - rhs.itsB);
-
-	return tempVector;
-}
-
-Point Vector::GetA(){
-	return itsA;
-}
-
-Point Vector::GetB(){
-	return itsB;
-}
-
-void Vector::SetA(Point PointA){
-	itsA = PointA;
-}
-
-void Vector::SetA(float Ax, float Ay){
-	itsA.SetX(Ax);
-	itsA.SetY(Ay);
-}
-
-void Vector::SetB(float Bx, float By){
-	itsB.SetX(Bx);
-	itsB.SetY(By);
-}
-
-void Vector::SetB(Point PointB){
-	itsB= PointB;
-}
-
-float Vector::GetL(){
-	float lenght;
-	lenght = sqrt(pow(abs(itsA.GetX()-itsB.GetX()),2) + pow(abs(itsA.GetY() - itsB.GetY()),2));
-	return lenght;
-}
-
-float Vector::GetAlpha(){
-	float alpha;
-	float tgalpha;
-	float DiffX = itsB.GetX()-itsA.GetX();
-
-	if(DiffX != 0)
-	{
-		tgalpha = (itsB.GetY()-itsA.GetY())/(DiffX);
-		alpha = atan(tgalpha);
-	}
-	else if (itsB.GetY()-itsA.GetY() > 0) {
-		alpha = 90;
-	}
-	else alpha = 270;
-
-	return alpha;
-
-}
-
-void Vector::Rotate(double angle, Point axis){
-
-			angle = -angle*3.1415926545/180;
-			/* Wektory do obliczeń */
-			Point Vect_OA;
-			Point Vect_OB = axis;
-			Point Vect_AB;
-
-			/* Wektor wyjściowy */
-			Point Vect_OAp;
-
-			/* Obrót punktu Startowego */
-			Vect_OA = GetA();
-
-			Vect_AB = Vect_OA - Vect_OB;
-
-			/* Rotacja OA-OB */
-			Vect_OAp.SetX(Vect_AB.GetX()*cos(angle) - Vect_AB.GetY()*sin(angle));
-			Vect_OAp.SetY(Vect_AB.GetX()*sin(angle) + Vect_AB.GetY()*cos(angle));
-
-			/* Przesunięcie do punktu B */
-			Vect_OAp = Vect_OAp + Vect_OB;
-
-			SetA(Vect_OAp);
-
-			/* Obrót punktu Końcowego */
-			Vect_OA = GetB();
-
-			Vect_AB = Vect_OA - Vect_OB;
-
-			/* Rotacja OA-OB */
-			Vect_OAp.SetX(Vect_AB.GetX()*cos(angle) - Vect_AB.GetY()*sin(angle));
-			Vect_OAp.SetY(Vect_AB.GetX()*sin(angle) + Vect_AB.GetY()*cos(angle));
-
-			/* Przesunięcie do punktu B */
-			Vect_OAp = Vect_OAp + Vect_OB;
-
-			SetB(Vect_OAp);
-
-}
-
-/*------------------------------------------------ LINE ------------------------------------------------------*/
-class Line : public Vector{
-	public:
-		Color Kolor;
-		void ChangeDir();
-		void SetSize(uint8_t size);
-		uint8_t GetSize();
-	private:
-		uint8_t itsSize = 1;
-};
-
-void Line::SetSize(uint8_t size){
-	itsSize = size;
-	}
-
-uint8_t Line::GetSize(){
-	return itsSize;
-}
-
-void Line::ChangeDir(){
-		Point tempPoint;
-
-		tempPoint = GetA();
-		SetA(GetB());
-		SetB(tempPoint);
-
-	}
-
-/* ----------------------------BACKGROUND------------------------------------------*/
-class Rectangle{
-	public:
-		Color Kolor;
-		Color Gradient;
-		Point LeftUp;
-		Point RightDown;
-		void SetFill(bool isFilled);
-	private:
-		bool itsFill = 1;
-};
-
-void Rectangle::SetFill(bool IsFilled){
-	itsFill = IsFilled;
 }
 
 /* ----------------------------Obsługa wyświetlacza low level --------------------------------*/
@@ -315,7 +66,6 @@ void Rectangle::SetFill(bool IsFilled){
 
 class ILI9341 {
 	public:
-
 	/* CSX pin */
 	uint16_t csx_pin;
 	GPIO_TypeDef * csx_port;
@@ -339,15 +89,17 @@ class ILI9341 {
 	void Reset();
 	void PowerON();
 
-	void X_Set(uint16_t SP, uint16_t EP);
-	void Y_Set(uint16_t SP, uint16_t EP);
+	void SetDrawArea(uint16_t xs, uint16_t ys, uint16_t xe, uint16_t ye);
+	void DrawPixel(Color Kolor);
 
-	void Draw(Pixel Pixel);
-	void Draw(Line Line);
-	void Draw(Rectangle Rectangle);
+	void SetBackgroundColor(Color);
+	void SetBackgroundColor(uint8_t red, uint8_t green, uint8_t blue);
+	Color GetBackgroundColor();
 
-	void Erase(Pixel &Pixel, Color Kolor);
-	void Erase(Line &Line, Color Kolor);
+//	void Draw(Rectangle Rectangle);
+//
+//	void Erase(Pixel &Pixel, Color Kolor);
+//	void Erase(Line &Line, Color Kolor);
 
 	private:
 
@@ -359,124 +111,25 @@ class ILI9341 {
 		void CSX_OFF();
 		void RDX(uint8_t RW);
 		void DCX(uint8_t CD);
+
+		void SetX(uint16_t SP, uint16_t EP);
+		void SetY(uint16_t SP, uint16_t EP);
+
+		Color itsBackgroundColor;
 };
 
-void ILI9341::Draw(Pixel Pix){
-
-	if(Pix.GetX()<320 && Pix.GetY()<240){
-		Line tempLine;
-		tempLine.SetSize(1);
-		tempLine.Kolor = Pix.Kolor;
-
-		/* Rysujemy okrąg o środku Pixel i promieniu size */
-		int xs,xe,ys,ye,temp;
-		xs = Pix.GetX()-(Pix.GetSize()-1);
-		xe = Pix.GetX()+(Pix.GetSize()-1);
-
-		for(int x=xs; x<xe; ++x){
-			temp = sqrt((Pix.GetSize()*Pix.GetSize())-(x-Pix.GetX())*(x-Pix.GetX()));
-			ys=Pix.GetY()+temp;
-			ye=Pix.GetY()-temp;
-			tempLine.SetA(x, ys);
-			tempLine.SetB(x, ye);
-			Draw(tempLine);
-			}
-
-	X_Set(Pix.GetX(), Pix.GetX()+1);
-	Y_Set(Pix.GetY(), Pix.GetY()+1);
-
-	Write(REG_MEMORY_WRITE, 0, 0);
-
-	Write(REG_MEMORY_WRITE_CONTINUE, 0, 0);
-	SendData(Pix.Kolor, 1);
-	}
-}
-
-
-void ILI9341::Draw(Line L)
-{
-	Point Dif;
-	Point A,B;
-
-	A = L.GetA();
-	B = L.GetB();
-
-	Dif = B-A;
-
-	int y = 0;
-	int x = 0
-			;
-	Pixel Pixel;
-	Pixel.Kolor = L.Kolor;
-
-	float t;
-
-	if(abs(Dif.GetX())>abs(Dif.GetY())){
-		if(Dif.GetX() < 0) L.ChangeDir();
-			/* Kąt nachylenia jest mniejszy lub równy 45 deg */
-			/*Iterujemy po x */
-
-			/* z równania parametrycznego prostej*/
-
-			for(x=L.GetA().GetX(); x<L.GetB().GetX(); ++x){
-				t = (float)(x - L.GetA().GetX())/(float)Dif.GetX();
-				y = L.GetA().GetY() + t*Dif.GetY();
-
-				Pixel.ChangeSize(L.GetSize());
-				Pixel.SetX(x);
-				Pixel.SetY(y);
-				Draw(Pixel);
-
-			}
-		}
-		else{
-			if(Dif.GetY() < 0 ) L.ChangeDir();
-
-			for(y=L.GetA().GetY(); y<L.GetB().GetY(); ++y)
-			{
-				t = float(y - L.GetA().GetY())/(float)Dif.GetY();
-				x = L.GetA().GetX() + t*Dif.GetX();
-
-				Pixel.ChangeSize(L.GetSize());
-				Pixel.SetX(x);
-				Pixel.SetY(y);
-				Draw(Pixel);
-			}
-
-
-		}
-	}
-
-void ILI9341::Erase(Pixel &Pixel, Color Kolor){
-	//Chujowe rozwiązanie
-	Color tempColor;
-	tempColor = Pixel.Kolor;
-	Pixel.Kolor = Kolor;
-	Draw(Pixel);
-	Pixel.Kolor = tempColor;
-}
-
-void ILI9341::Erase(Line &Line, Color Kolor){
-	//Chujowe rozwiązanie
-	Color tempColor;
-	tempColor = Line.Kolor;
-	Line.Kolor = Kolor;
-	Draw(Line);
-	Line.Kolor = tempColor;
-}
-
-void ILI9341::Draw(Rectangle BG){
-
-	Line tempLine;
-	tempLine.Kolor=BG.Kolor;
-
-	for(int x = BG.LeftUp.GetX(); x<BG.RightDown.GetX();++x)
-	{
-		tempLine.SetA(x,BG.LeftUp.GetY());
-		tempLine.SetB(x,BG.RightDown.GetY());
-		Draw(tempLine);
-	}
-}
+//void ILI9341::Draw(Rectangle BG){
+//
+//	Line tempLine;
+//	tempLine.Kolor=BG.Kolor;
+//
+//	for(int x = BG.LeftUp.GetX(); x<BG.RightDown.GetX();++x)
+//	{
+//		tempLine.SetA(x,BG.LeftUp.GetY());
+//		tempLine.SetB(x,BG.RightDown.GetY());
+//		Draw(tempLine);
+//	}
+//}
 
 void ILI9341::CSX_ON(){
 	HAL_GPIO_WritePin(csx_port, csx_pin, GPIO_PIN_RESET);
@@ -547,47 +200,33 @@ void ILI9341::Write(uint8_t command,uint8_t n,uint8_t * data){
 
 }
 
-void ILI9341::SendData(Color Kolor, uint16_t n){
-
-	uint8_t data[3];
-
-	data[2]= (Kolor.GetRed()>>1)|0x80;
-	data[1]= (Kolor.GetGreen()>>1)|0x80;
-	data[0]= (Kolor.GetBlue()>>1)|0x80;
-
-	DCX(DATA);
-	CSX_ON();
-
-	for(uint16_t i=0; i<n; i++)
-	{
-		HAL_SPI_Transmit(spi, data, 3, 100);
-	}
-	CSX_OFF();
-
-}
-
-void ILI9341::X_Set(uint16_t SP, uint16_t EP){
+void ILI9341::SetX(uint16_t sp, uint16_t ep){
 
 	uint8_t data[4];
-	data[0] = (SP >> 8) & 0x00ff;
-	data[1] = SP & 0x00ff;
-	data[2] = (EP >> 8) & 0x00ff;
-	data[3] = (EP & 0x00ff);
+	data[0] = (sp >> 8) & 0x00ff;
+	data[1] = sp & 0x00ff;
+	data[2] = (ep >> 8) & 0x00ff;
+	data[3] = (ep & 0x00ff);
 
 	Write(REG_PAGE_ADDRESS_SET, 4, data);
 
 }
 
-void ILI9341::Y_Set(uint16_t SP, uint16_t EP){
+void ILI9341::SetY(uint16_t sp, uint16_t ep){
 
 	uint8_t data[4];
-	data[0] = (SP >> 8) & 0x00ff;
-	data[1] = SP & 0x00ff;
-	data[2] = (EP >> 8) & 0x00ff;
-	data[3] = (EP & 0x00ff);
+	data[0] = (sp >> 8) & 0x00ff;
+	data[1] = sp & 0x00ff;
+	data[2] = (ep >> 8) & 0x00ff;
+	data[3] = (ep & 0x00ff);
 
 	Write(REG_COLUMN_ADDRESS_SET, 4, data);
+}
 
+void ILI9341::SetDrawArea(uint16_t xs, uint16_t ys, uint16_t xe, uint16_t ye){
+	SetX(xs, xe);
+	SetY(ys, ye);
+	Write(REG_MEMORY_WRITE, 0, 0);
 }
 
 void ILI9341::Shift_Frame(uint16_t y){
@@ -610,4 +249,378 @@ void ILI9341::Shift_Frame(uint16_t y){
 	Write(REG_VERTICAL_SCROLLING_START_ADDRESS, 2, data);
 	Write(REG_MEMORY_WRITE,0,0);
 
+}
+
+void ILI9341::DrawPixel(Color Kolor){
+
+	/* For corrent Pixel Draw first set draw area using SetDrawArea class */
+
+	Write(REG_MEMORY_WRITE_CONTINUE, 0, 0);
+
+	uint8_t data[3];
+
+	data[2]= (Kolor.GetRed()>>1)|0x80;
+	data[1]= (Kolor.GetGreen()>>1)|0x80;
+	data[0]= (Kolor.GetBlue()>>1)|0x80;
+
+	DCX(DATA);
+	CSX_ON();
+
+	HAL_SPI_Transmit(spi, data, 3, 100);
+
+	CSX_OFF();
+}
+
+void ILI9341::SetBackgroundColor(Color Kolor){
+
+	itsBackgroundColor = Kolor;
+
+	SetDrawArea(0, 0, 320, 240);
+	for(int i=0; i<320*240;i++)
+	{
+		DrawPixel(itsBackgroundColor);
+	}
+}
+
+void ILI9341::SetBackgroundColor(uint8_t red, uint8_t green, uint8_t blue)
+{
+	itsBackgroundColor.SetColor(red, green, blue);
+	SetBackgroundColor(itsBackgroundColor);
+}
+
+Color ILI9341::GetBackgroundColor(){
+	return itsBackgroundColor;
+}
+
+/* Obsługa wyświetlacza high level */
+
+
+/*-----------------------------------------------------------------------------------------------------------------*/
+/* ---------------------------------------------------- PIXEL -----------------------------------------------------*/
+/* ----------------------------------------------------------------------------------------------------------------*/
+class Shape{
+	public:
+		virtual void Draw();
+//		virtual void Erase();
+
+};
+
+void Shape::Draw(){
+
+}
+
+class Pixel : public Shape {
+	public:
+		Pixel();
+		void SetX(float x);
+		void SetY(float y);
+		void Set(float x, float y);
+		float GetX();
+		float GetY();
+
+		Color Kolor;
+
+		void Draw(ILI9341);
+		void Erase(ILI9341);
+
+		Pixel operator+ (Pixel &);
+		Pixel operator- (Pixel &);
+
+	protected:
+		float itsX;
+		float itsY;
+};
+
+Pixel::Pixel(){
+	itsX =0;
+	itsY =0;
+		}
+
+
+Pixel Pixel::operator+ (Pixel & rhs){
+	Pixel tempPoint;
+	tempPoint.SetX(itsX + rhs.GetX());
+	tempPoint.SetY(itsY + rhs.GetY());
+
+	return tempPoint;
+}
+
+Pixel Pixel::operator- (Pixel & rhs){
+	Pixel tempPoint;
+	tempPoint.SetX(itsX - rhs.GetX());
+	tempPoint.SetY(itsY - rhs.GetY());
+
+	return tempPoint;
+}
+
+void Pixel::Set(float x, float y){
+	itsX = x;
+	itsY = y;
+}
+
+void Pixel::SetX(float x){
+	itsX = x;
+}
+void Pixel::SetY(float y){
+	itsY = y;
+}
+
+float Pixel::GetX(){
+	return itsX;
+}
+
+float Pixel::GetY(){
+	return itsY;
+}
+
+void Pixel::Draw(ILI9341 LCD){
+
+	if(GetX()<320 && GetY()<240){
+			LCD.SetDrawArea(GetX(), GetY(), GetX()+1, GetY()+1);
+			LCD.DrawPixel(Kolor);
+		}
+}
+
+void Pixel::Erase(ILI9341 LCD){
+	if(GetX()<320 && GetY()<240){
+			LCD.SetDrawArea(GetX(), GetY(), GetX()+1, GetY()+1);
+			LCD.DrawPixel(LCD.GetBackgroundColor());
+		}
+}
+
+
+/*-----------------------------------------------------------------------------------------------------------------*/
+/* ---------------------------------------------------- LINE ------------------------------------------------------*/
+/* ----------------------------------------------------------------------------------------------------------------*/
+
+class Line : public Shape{
+	public:
+		Color Kolor;
+		void ChangeDir();
+		void SetSize(uint8_t size);
+		uint8_t GetSize();
+
+		void SetA(Pixel A);
+		void SetA(float Ax, float Ay);
+		void SetB(Pixel B);
+		void SetB(float Bx, float By);
+
+		Pixel GetA();
+		Pixel GetB();
+		float GetL();
+		float GetAlpha();
+		void Rotate(double angle, Pixel axis);
+
+		void Draw(ILI9341);
+		void Erase(ILI9341);
+
+		Line operator+ (Line &);
+		Line operator- (Line &);
+	protected:
+		uint8_t itsSize = 1;
+		Pixel itsA;
+		Pixel itsB;
+};
+
+Line Line::operator+(Line & rhs){
+	Line tempVector;
+	tempVector.SetA(itsA + rhs.itsA);
+	tempVector.SetB(itsB + rhs.itsB);
+
+	return tempVector;
+}
+
+Line Line::operator-(Line & rhs){
+	Line tempVector;
+	tempVector.SetA(itsA - rhs.itsA);
+	tempVector.SetB(itsB - rhs.itsB);
+
+	return tempVector;
+}
+
+Pixel Line::GetA(){
+	return itsA;
+}
+
+Pixel Line::GetB(){
+	return itsB;
+}
+
+void Line::SetA(Pixel PointA){
+	itsA = PointA;
+}
+
+void Line::SetA(float Ax, float Ay){
+	itsA.SetX(Ax);
+	itsA.SetY(Ay);
+}
+
+void Line::SetB(float Bx, float By){
+	itsB.SetX(Bx);
+	itsB.SetY(By);
+}
+
+void Line::SetB(Pixel PointB){
+	itsB= PointB;
+}
+
+float Line::GetL(){
+	float lenght;
+	lenght = sqrt(pow(abs(itsA.GetX()-itsB.GetX()),2) + pow(abs(itsA.GetY() - itsB.GetY()),2));
+	return lenght;
+}
+
+float Line::GetAlpha(){
+	float alpha;
+	float tgalpha;
+	float DiffX = itsB.GetX()-itsA.GetX();
+
+	if(DiffX != 0)
+	{
+		tgalpha = (itsB.GetY()-itsA.GetY())/(DiffX);
+		alpha = atan(tgalpha);
+	}
+	else if (itsB.GetY()-itsA.GetY() > 0) {
+		alpha = 90;
+	}
+	else alpha = 270;
+
+	return alpha;
+
+}
+
+void Line::Rotate(double angle, Pixel axis){
+
+			angle = -angle*3.1415926545/180;
+			/* Wektory do obliczeń */
+			Pixel Vect_OA;
+			Pixel Vect_OB = axis;
+			Pixel Vect_AB;
+
+			/* Wektor wyjściowy */
+			Pixel Vect_OAp;
+
+			/* Obrót punktu Startowego */
+			Vect_OA = GetA();
+
+			Vect_AB = Vect_OA - Vect_OB;
+
+			/* Rotacja OA-OB */
+			Vect_OAp.SetX(Vect_AB.GetX()*cos(angle) - Vect_AB.GetY()*sin(angle));
+			Vect_OAp.SetY(Vect_AB.GetX()*sin(angle) + Vect_AB.GetY()*cos(angle));
+
+			/* Przesunięcie do punktu B */
+			Vect_OAp = Vect_OAp + Vect_OB;
+
+			SetA(Vect_OAp);
+
+			/* Obrót punktu Końcowego */
+			Vect_OA = GetB();
+
+			Vect_AB = Vect_OA - Vect_OB;
+
+			/* Rotacja OA-OB */
+			Vect_OAp.SetX(Vect_AB.GetX()*cos(angle) - Vect_AB.GetY()*sin(angle));
+			Vect_OAp.SetY(Vect_AB.GetX()*sin(angle) + Vect_AB.GetY()*cos(angle));
+
+			/* Przesunięcie do punktu B */
+			Vect_OAp = Vect_OAp + Vect_OB;
+
+			SetB(Vect_OAp);
+
+}
+
+void Line::SetSize(uint8_t size){
+	itsSize = size;
+	}
+
+uint8_t Line::GetSize(){
+	return itsSize;
+}
+
+void Line::ChangeDir(){
+		Pixel tempPoint;
+
+		tempPoint = GetA();
+		SetA(GetB());
+		SetB(tempPoint);
+
+	}
+
+void Line::Draw(ILI9341 LCD){
+		Pixel Dif;
+		Pixel A,B;
+
+		A = GetA();
+		B = GetB();
+
+		Dif = B-A;
+
+		int y = 0;
+		int x = 0
+				;
+		Pixel Pix;
+		Pix.Kolor = Kolor;
+
+		float t;
+
+		if(abs(Dif.GetX())>abs(Dif.GetY())){
+			if(Dif.GetX() < 0) ChangeDir();
+				/* Kąt nachylenia jest mniejszy lub równy 45 deg */
+				/*Iterujemy po x */
+
+				/* z równania parametrycznego prostej*/
+
+				for(x=GetA().GetX(); x<GetB().GetX(); ++x){
+					t = (float)(x - GetA().GetX())/(float)Dif.GetX();
+					y = GetA().GetY() + t*Dif.GetY();
+
+					Pix.SetX(x);
+					Pix.SetY(y);
+
+					Pix.Draw(LCD);
+
+				}
+			}
+			else{
+				if(Dif.GetY() < 0 ) ChangeDir();
+
+				for(y=GetA().GetY(); y<GetB().GetY(); ++y)
+				{
+					t = float(y - GetA().GetY())/(float)Dif.GetY();
+					x = GetA().GetX() + t*Dif.GetX();
+
+					Pix.SetX(x);
+					Pix.SetY(y);
+					Pix.Draw(LCD);
+				}
+
+
+			}
+}
+
+void Line::Erase(ILI9341 LCD){
+	Color tempColor;
+	tempColor = Kolor;
+	Kolor = LCD.GetBackgroundColor();
+	Draw(LCD);
+	Kolor = tempColor;
+
+}
+
+
+/* ----------------------------BACKGROUND------------------------------------------*/
+class Rectangle : public Shape{
+	public:
+		Color Kolor;
+		Color Gradient;
+		Pixel LeftUp;
+		Pixel RightDown;
+		void SetFill(bool isFilled);
+	private:
+		bool itsFill = 1;
+};
+
+void Rectangle::SetFill(bool IsFilled){
+	itsFill = IsFilled;
 }

@@ -20,8 +20,10 @@
 
 
 #endif /* INC_ILI9341_HPP_ */
+
 class Color{
 	public:
+		Color();
 		void SetColor (uint8_t Red, uint8_t Green, uint8_t Blue);
 		uint8_t GetRed();
 		uint8_t GetGreen();
@@ -30,68 +32,6 @@ class Color{
 		uint8_t itsRed = 0;
 		uint8_t itsGreen = 0;
 		uint8_t itsBlue = 0;
-};
-
-class Point {
-	public:
-		void SetX(float x);
-		void SetY(float y);
-		void Set(float x, float y);
-		float GetX();
-		float GetY();
-		Point operator+(Point &);
-		Point operator-(Point &);
-	protected:
-		float itsX;
-		float itsY;
-};
-
-class Pixel: public Point{
-	public:
-
-		Color Kolor;
-		void SetSize(uint8_t size);
-		uint8_t GetSize();
-};
-
-class Vector{
-	public:
-		void SetA(Point A);
-		void SetA(float Ax, float Ay);
-		void SetB(Point B);
-		void SetB(float Bx, float By);
-
-		Point GetA();
-		Point GetB();
-		float GetL();
-		float GetAlpha();
-		void Rotate(double angle, Point axis);
-
-		Vector operator+ (Vector &);
-		Vector operator- (Vector &);
-	protected:
-		Point itsA;
-		Point itsB;
-};
-
-class Line: public Vector{
-	public:
-		Color Kolor;
-
-		void ChangeDir();
-		void SetSize(uint8_t size);
-		uint8_t GetSize();
-};
-
-class Rectangle{
-	public:
-		Color Kolor;
-		Color Gradient;
-		Point LeftUp;
-		Point RightDown;
-		void SetFill(bool isFilled);
-	private:
-		bool itsFill = 1;
 };
 
 class ILI9341 {
@@ -123,10 +63,84 @@ class ILI9341 {
 	void X_Set(uint16_t SP, uint16_t EP);
 	void Y_Set(uint16_t SP, uint16_t EP);
 
-	void Draw(Pixel Pixel);
-	void Draw(Line Line);
-	void Draw(Rectangle Rectangle);
+	void SetBackgroundColor(Color);
+	void SetBackgroundColor(uint8_t red, uint8_t green, uint8_t blue);
+	Color GetBackgroundColor();
 
-	void Erase(Pixel &Pixel, Color Kolor);
-	void Erase(Line &Line, Color Kolor);
+	private:
+	Color itsBackgroundColor;
+
+//	void Draw(Rectangle Rectangle);
+//
+//	void Erase(Pixel &Pixel, Color Kolor);
+//	void Erase(Line &Line, Color Kolor);
 };
+
+class Shape{
+	virtual void Draw();
+	virtual void Erase();
+};
+
+class Pixel : public Shape {
+	public:
+		Pixel();
+		void SetX(float x);
+		void SetY(float y);
+		void Set(float x, float y);
+		float GetX();
+		float GetY();
+
+		Color Kolor;
+
+		void Draw(ILI9341);
+		void Erase(ILI9341);
+
+		Pixel operator+ (Pixel &);
+		Pixel operator- (Pixel &);
+
+	protected:
+		float itsX;
+		float itsY;
+};
+
+class Line : public Shape{
+	public:
+		Color Kolor;
+		void ChangeDir();
+		void SetSize(uint8_t size);
+		uint8_t GetSize();
+
+		void SetA(Pixel A);
+		void SetA(float Ax, float Ay);
+		void SetB(Pixel B);
+		void SetB(float Bx, float By);
+
+		Pixel GetA();
+		Pixel GetB();
+		float GetL();
+		float GetAlpha();
+		void Rotate(double angle, Pixel axis);
+
+		void Draw(ILI9341);
+		void Erase(ILI9341);
+
+		Line operator+ (Line &);
+		Line operator- (Line &);
+	protected:
+		uint8_t itsSize = 1;
+		Pixel itsA;
+		Pixel itsB;
+};
+
+
+class Rectangle{
+	public:
+		Color Kolor;
+		Color Gradient;
+		Pixel LeftUp;
+		Pixel RightDown;
+		void SetFill(bool isFilled);
+	private:
+		bool itsFill = 1;
+};
+
