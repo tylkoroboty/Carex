@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <ILI9341.hpp>
+#include <HC05.hpp>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +53,7 @@ SPI_HandleTypeDef hspi5;
 
 TIM_HandleTypeDef htim1;
 
+UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
 
 HCD_HandleTypeDef hhcd_USB_OTG_HS;
@@ -74,6 +76,7 @@ static void MX_SPI5_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USB_OTG_HS_HCD_Init(void);
+static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 static void LCD1_Init(void);
 /* USER CODE END PFP */
@@ -96,7 +99,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
- HAL_Init();
+   HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -120,38 +123,60 @@ int main(void)
   MX_TIM1_Init();
   MX_USART1_UART_Init();
   MX_USB_OTG_HS_HCD_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 
+  /* Wyświetlacz */
+
   LCD1_Init();
-
   LCD1.Reset();
-
   LCD1.PowerON();
 
-  Pixel Axis1;
-  Axis1.Set(150, 125);
+  Pixel Axis2;
+  Axis2.Set(200, 100);
 
-  Line Linia1;
-  Line Linia2;
-  Line Linia3;
+ Rectangle Kwadrat1;
+ Kwadrat1.Set(50,50,51,60);
+ Kwadrat1.Kolor.SetColor(255, 0, 0);
 
- Linia1.SetSize(1);
- Linia1.SetA(100,50);
- Linia1.SetB(125,100);
- Linia1.Kolor.SetColor(255, 0, 255);
+ Rectangle Kwadrat2;
+ Kwadrat2.Set(225, 150,275,175);
+ Kwadrat2.Kolor.SetColor(0, 0, 255);
 
- Linia2.SetSize(1);
- Linia2.SetA(125,100);
- Linia2.SetB(75,100);
- Linia2.Kolor.SetColor(0, 255, 255);
+ Shape* pShapes[20];
+ uint8_t pShapeNum=2;
 
- Linia3.SetSize(1);
- Linia3.SetA(75,100);
- Linia3.SetB(100,50);
- Linia3.Kolor.SetColor(255, 255, 0);
+ pShapes[0] = &Kwadrat1;
+ pShapes[1] = &Kwadrat2;
+
+/* Bluetooth */
+
+ uint8_t SlaveAddress[] = "98D3,31,FB8284";
+
+ HC05 BtModule;
+ BtModule.SetKey(UART_5_KEY_Pin, UART_5_KEY_GPIO_Port);
+ BtModule.SetUart(&huart5);
+
+ uint8_t btData = 'X';
+
+ for(uint8_t Value=0; Value<250;Value++)
+ {
+	 if(!BtModule.SetMode(AT)) Kwadrat1.Kolor.SetColor(0, 255, 0);
+	 else Kwadrat1.Kolor.SetColor(255, 0, 0);
+	 Kwadrat1.Draw(LCD1);
+	 Kwadrat1.Set(50+Value,50,51+Value,60);
+ }
 
  LCD1.SetBackgroundColor(0, 0, 0);
 
+ uint8_t btName[] = "Dragon";
+ BtModule.ATSetName(btName, 6);
+
+ BtModule.ATSetRole(MASTER);
+
+BtModule.ATReset();
+
+BtModule.ATPair(SlaveAddress);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -161,18 +186,21 @@ int main(void)
   {
 	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
+	  for(int i=0; i<pShapeNum;i++)
+	  {
+		  pShapes[i]->Draw(LCD1);
+	  }
 
-	  Linia1.Draw(LCD1);
-	  Linia2.Draw(LCD1);
-	  Linia3.Draw(LCD1);
+	  HAL_Delay(2000);
+	  for(int i=0; i<pShapeNum;i++)
+	  {
+		  pShapes[i]->Erase(LCD1);
+	  }
 
-	  Linia1.Erase(LCD1);
-	  Linia2.Erase(LCD1);
-	  Linia3.Erase(LCD1);
+	  Kwadrat1.Rotate(5, Axis2);
+	  Kwadrat2.Rotate(-5, Axis2);
 
-	  Linia1.Rotate(-10, Axis1);
-	  Linia2.Rotate(-10, Axis1);
-	  Linia3.Rotate(-10, Axis1);
+	  BtModule.DataSend(&btData, 1);
 
     /* USER CODE END WHILE */
 
@@ -508,6 +536,39 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief UART5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART5_Init(void)
+{
+
+  /* USER CODE BEGIN UART5_Init 0 */
+
+  /* USER CODE END UART5_Init 0 */
+
+  /* USER CODE BEGIN UART5_Init 1 */
+
+  /* USER CODE END UART5_Init 1 */
+  huart5.Instance = UART5;
+  huart5.Init.BaudRate = 38400;
+  huart5.Init.WordLength = UART_WORDLENGTH_8B;
+  huart5.Init.StopBits = UART_STOPBITS_1;
+  huart5.Init.Parity = UART_PARITY_NONE;
+  huart5.Init.Mode = UART_MODE_TX_RX;
+  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART5_Init 2 */
+
+  /* USER CODE END UART5_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -641,7 +702,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, NCS_MEMS_SPI_Pin|CSX_Pin|OTG_FS_PSO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, NCS_MEMS_SPI_Pin|CSX_Pin|OTG_FS_PSO_Pin|UART_5_KEY_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ACP_RST_GPIO_Port, ACP_RST_Pin, GPIO_PIN_RESET);
@@ -652,8 +713,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, LD3_Pin|LD4_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : NCS_MEMS_SPI_Pin CSX_Pin OTG_FS_PSO_Pin */
-  GPIO_InitStruct.Pin = NCS_MEMS_SPI_Pin|CSX_Pin|OTG_FS_PSO_Pin;
+  /*Configure GPIO pins : NCS_MEMS_SPI_Pin CSX_Pin OTG_FS_PSO_Pin UART_5_KEY_Pin */
+  GPIO_InitStruct.Pin = NCS_MEMS_SPI_Pin|CSX_Pin|OTG_FS_PSO_Pin|UART_5_KEY_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

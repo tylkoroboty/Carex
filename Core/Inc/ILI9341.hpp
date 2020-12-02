@@ -77,8 +77,12 @@ class ILI9341 {
 };
 
 class Shape{
-	virtual void Draw();
-	virtual void Erase();
+	public:
+	virtual void Draw(ILI9341);
+	virtual void Erase(ILI9341);
+	Color Kolor;
+
+	protected:
 };
 
 class Pixel : public Shape {
@@ -89,8 +93,6 @@ class Pixel : public Shape {
 		void Set(float x, float y);
 		float GetX();
 		float GetY();
-
-		Color Kolor;
 
 		void Draw(ILI9341);
 		void Erase(ILI9341);
@@ -105,7 +107,6 @@ class Pixel : public Shape {
 
 class Line : public Shape{
 	public:
-		Color Kolor;
 		void ChangeDir();
 		void SetSize(uint8_t size);
 		uint8_t GetSize();
@@ -133,14 +134,26 @@ class Line : public Shape{
 };
 
 
-class Rectangle{
-	public:
-		Color Kolor;
-		Color Gradient;
-		Pixel LeftUp;
-		Pixel RightDown;
-		void SetFill(bool isFilled);
-	private:
-		bool itsFill = 1;
-};
+class Rectangle : public Shape{
+public:
 
+	void Set(Pixel LeftUp, Pixel RightDown);
+	void Set(uint16_t LeftUpX, uint16_t LeftUpY, uint16_t RightDownX, uint16_t RightDownY);
+	void Set(Pixel LeftUp, Pixel RightUp, Pixel RightDown, Pixel LeftDown);
+
+	void Rotate(double angle, Pixel axis);
+
+	void SetFill(bool isFilled);
+	bool IsFilled();
+
+	void Draw(ILI9341);
+	void Erase(ILI9341);
+
+private:
+	Pixel itsLeftUp;
+	Pixel itsRightUp;
+	Pixel itsRightDown;
+	Pixel itsLeftDown;
+
+	bool itsFill = 0;
+};

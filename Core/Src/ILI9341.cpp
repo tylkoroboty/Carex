@@ -300,12 +300,18 @@ Color ILI9341::GetBackgroundColor(){
 /* ----------------------------------------------------------------------------------------------------------------*/
 class Shape{
 	public:
-		virtual void Draw();
+	Color Kolor;
+	virtual void Draw(ILI9341);
+	virtual void Erase(ILI9341);
 //		virtual void Erase();
 
 };
 
-void Shape::Draw(){
+void Shape::Draw(ILI9341){
+
+}
+
+void Shape::Erase(ILI9341){
 
 }
 
@@ -318,8 +324,6 @@ class Pixel : public Shape {
 		float GetX();
 		float GetY();
 
-		Color Kolor;
-
 		void Draw(ILI9341);
 		void Erase(ILI9341);
 
@@ -327,6 +331,7 @@ class Pixel : public Shape {
 		Pixel operator- (Pixel &);
 
 	protected:
+
 		float itsX;
 		float itsY;
 };
@@ -395,7 +400,6 @@ void Pixel::Erase(ILI9341 LCD){
 
 class Line : public Shape{
 	public:
-		Color Kolor;
 		void ChangeDir();
 		void SetSize(uint8_t size);
 		uint8_t GetSize();
@@ -417,6 +421,7 @@ class Line : public Shape{
 		Line operator+ (Line &);
 		Line operator- (Line &);
 	protected:
+
 		uint8_t itsSize = 1;
 		Pixel itsA;
 		Pixel itsB;
@@ -612,15 +617,125 @@ void Line::Erase(ILI9341 LCD){
 /* ----------------------------BACKGROUND------------------------------------------*/
 class Rectangle : public Shape{
 	public:
-		Color Kolor;
-		Color Gradient;
-		Pixel LeftUp;
-		Pixel RightDown;
+
+		void Set(Pixel LeftUp, Pixel RightDown);
+		void Set(uint16_t LeftUpX, uint16_t LeftUpY, uint16_t RightDownX, uint16_t RightDownY);
+		void Set(Pixel LeftUp, Pixel RightUp, Pixel RightDown, Pixel LeftDown);
+
+		void Rotate(double angle, Pixel axis);
+
 		void SetFill(bool isFilled);
+		bool IsFilled();
+
+		void Draw(ILI9341);
+		void Erase(ILI9341);
+
 	private:
-		bool itsFill = 1;
+		Pixel itsLeftUp;
+		Pixel itsRightUp;
+		Pixel itsRightDown;
+		Pixel itsLeftDown;
+
+		bool itsFill = 0;
 };
+
+void Rectangle::Set(uint16_t LeftUpX, uint16_t LeftUpY, uint16_t RightDownX, uint16_t RightDownY){
+	Pixel tempPixLU;
+	Pixel tempPixRD;
+
+	tempPixLU.Set(LeftUpX, LeftUpY);
+	tempPixRD.Set(RightDownX, RightDownY);
+	Set(tempPixLU, tempPixRD);
+
+}
+
+void Rectangle::Set(Pixel LeftUp, Pixel RightDown){
+	itsLeftUp = LeftUp;
+	itsRightUp.Set(RightDown.GetX(), LeftUp.GetY());
+	itsRightDown = RightDown;
+	itsLeftDown.Set(LeftUp.GetX(), RightDown.GetY());
+}
+
+void Rectangle::Set(Pixel LU, Pixel RU, Pixel RD, Pixel LD){
+	itsLeftUp = LU;
+	itsRightUp = RU;
+	itsRightDown = RD;
+	itsLeftDown = LD;
+}
 
 void Rectangle::SetFill(bool IsFilled){
 	itsFill = IsFilled;
+}
+
+bool Rectangle::IsFilled(){
+	return itsFill;
+}
+
+void Rectangle::Draw(ILI9341 LCD){
+
+	Pixel A = itsLeftUp;
+	Pixel B = itsRightUp;
+	Pixel C = itsRightDown;
+	Pixel D = itsLeftDown;
+
+	Line tempLine;
+	tempLine.Kolor = Kolor;
+
+	if(IsFilled()){
+
+		for(int x = itsLeftUp.GetX(); x<itsRightDown.GetX();++x)
+		{
+			tempLine.SetA(x,itsLeftUp.GetY());
+			tempLine.SetB(x,itsRightDown.GetY());
+			tempLine.Draw(LCD);
+		}
+
+	}
+	else{
+
+		tempLine.SetA(A);
+		tempLine.SetB(B);
+		tempLine.Draw(LCD);
+
+		tempLine.SetA(B);
+		tempLine.SetB(C);
+		tempLine.Draw(LCD);
+
+		tempLine.SetA(C);
+		tempLine.SetB(D);
+		tempLine.Draw(LCD);
+
+		tempLine.SetA(D);
+		tempLine.SetB(A);
+		tempLine.Draw(LCD);
+		}
+
+
+}
+
+void Rectangle::Erase(ILI9341 LCD){
+	Color tempColor;
+
+	tempColor = Kolor;
+	Kolor = LCD.GetBackgroundColor();
+	Draw(LCD);
+	Kolor = tempColor;
+}
+
+void Rectangle::Rotate(double angle, Pixel axis){
+	Line tempLine;
+
+	tempLine.SetA(itsLeftUp);
+	tempLine.SetB(itsLeftDown);
+	tempLine.Rotate(angle, axis);
+
+	itsLeftUp = tempLine.GetA();
+	itsLeftDown = tempLine.GetB();
+
+	tempLine.SetA(itsRightUp);
+	tempLine.SetB(itsRightDown);
+	tempLine.Rotate(angle, axis);
+
+	itsRightUp = tempLine.GetA();
+	itsRightDown = tempLine.GetB();
 }
