@@ -140,6 +140,8 @@ public:
 	void Set(Pixel LeftUp, Pixel RightDown);
 	void Set(uint16_t LeftUpX, uint16_t LeftUpY, uint16_t RightDownX, uint16_t RightDownY);
 	void Set(Pixel LeftUp, Pixel RightUp, Pixel RightDown, Pixel LeftDown);
+	void SetSize(uint8_t size);
+	uint8_t GetSize();
 
 	void Rotate(double angle, Pixel axis);
 
@@ -156,4 +158,5 @@ private:
 	Pixel itsLeftDown;
 
 	bool itsFill = 0;
+	uint8_t itsSize = 1;
 };

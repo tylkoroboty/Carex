@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <ILI9341.hpp>
 #include <HC05.hpp>
+#include <Obd.hpp>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -132,55 +133,113 @@ int main(void)
   LCD1.Reset();
   LCD1.PowerON();
 
-  Pixel Axis2;
-  Axis2.Set(200, 100);
+  Pixel RpmAxis;
+  RpmAxis.Set(160, 10);
 
- Rectangle Kwadrat1;
- Kwadrat1.Set(50,50,51,60);
- Kwadrat1.Kolor.SetColor(255, 0, 0);
+ Rectangle Kontrolka_BT;
+ Kontrolka_BT.Set(20,200,40,220);
+ Kontrolka_BT.Kolor.SetColor(255, 0, 0);
+ Kontrolka_BT.SetSize(5);
 
- Rectangle Kwadrat2;
- Kwadrat2.Set(225, 150,275,175);
- Kwadrat2.Kolor.SetColor(0, 0, 255);
+ uint16_t carRpm=0;
+ uint16_t actualRpm=0;
+
+ Line RpmGauge;
+ RpmGauge.SetA(80, 10);
+ RpmGauge.SetB(105,10);
+ RpmGauge.Kolor.SetColor(181, 230, 29);
 
  Shape* pShapes[20];
- uint8_t pShapeNum=2;
+ uint8_t pShapeNum=1;
 
- pShapes[0] = &Kwadrat1;
- pShapes[1] = &Kwadrat2;
+ pShapes[0] = &RpmGauge;
+ pShapes[1] = &RpmGauge;
 
-/* Bluetooth */
+ LCD1.SetBackgroundColor(17, 66, 56);
+
+ Obd Meriva;
+
+/* Bluetooth Hardware Configuration */
 
  uint8_t SlaveAddress[] = "98D3,31,FB8284";
 
  HC05 BtModule;
+
  BtModule.SetKey(UART_5_KEY_Pin, UART_5_KEY_GPIO_Port);
  BtModule.SetUart(&huart5);
 
- uint8_t btData = 'X';
+/* END of Bluetooth Configuration */
 
- for(uint8_t Value=0; Value<250;Value++)
+/* Bluetooth Software configuration */
+
+ Kontrolka_BT.Draw(LCD1);
+
+ for(uint8_t attempt=0; attempt<150; attempt++)
  {
-	 if(!BtModule.SetMode(AT)) Kwadrat1.Kolor.SetColor(0, 255, 0);
-	 else Kwadrat1.Kolor.SetColor(255, 0, 0);
-	 Kwadrat1.Draw(LCD1);
-	 Kwadrat1.Set(50+Value,50,51+Value,60);
+	 if(BtModule.SetMode(AT)) Kontrolka_BT.Kolor.SetColor(255, 51, 0);
+	 else{
+		 Kontrolka_BT.Kolor.SetColor(102, 255, 51);
+		 Kontrolka_BT.Draw(LCD1);
+		 break;
+	 }
+
+	 /* Try to reset with AT commands after every 15 attempts */
+	 //if(!(attempt%15)) BtModule.ATReset();
  }
 
- LCD1.SetBackgroundColor(0, 0, 0);
 
- uint8_t btName[] = "Dragon";
- BtModule.ATSetName(btName, 6);
+ STATUS RSP;
 
- BtModule.ATSetRole(MASTER);
+ RSP=BtModule.ATSetRole(MASTER);
+ RSP=BtModule.ATReset();
 
-BtModule.ATReset();
+ RSP=BtModule.ATClearPairList();
+ RSP=BtModule.ATCmode(0);
 
-BtModule.ATPair(SlaveAddress);
-  /* USER CODE END 2 */
+ HAL_Delay(100);
+
+ RSP=BtModule.ATInit();
+ HAL_Delay(100);
+
+ for(uint8_t i=0; i<25; i++){
+	 if(!BtModule.ATBind(SlaveAddress)) break;
+	 HAL_Delay(100);
+ }
+
+ RSP=BtModule.ATPair(SlaveAddress);
+
+ RSP=BtModule.ATLink(SlaveAddress);
+
+ if(RSP) Kontrolka_BT.Kolor.SetColor(255, 51, 0);
+ else Kontrolka_BT.Kolor.SetColor(0, 102, 255);
+
+ Kontrolka_BT.Draw(LCD1);
+
+ BtModule.SetMode(DATA);
+
+ /* END of Bluetooth Software Configuration */
+
+ HAL_Delay(3000);
+
+ uint8_t Conncted[] = "Connected";
+ BtModule.DataSend(Conncted, 9);
+
+ /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+for(uint16_t n=0;n<5000;n+=15){
+	RpmGauge.Draw(LCD1);
+	RpmGauge.Kolor.SetColor(181, 230, 29);
+	RpmGauge.Rotate(0.5, RpmAxis);
+}
+
+for(uint16_t n=5010;n>0;n-=15){
+	RpmGauge.Draw(LCD1);
+	RpmGauge.Kolor.SetColor(109,146,146);
+	RpmGauge.Rotate(-0.5, RpmAxis);
+}
 
   while (1)
   {
@@ -191,17 +250,28 @@ BtModule.ATPair(SlaveAddress);
 		  pShapes[i]->Draw(LCD1);
 	  }
 
-	  HAL_Delay(2000);
-	  for(int i=0; i<pShapeNum;i++)
-	  {
-		  pShapes[i]->Erase(LCD1);
+	  if(carRpm < actualRpm){
+		  for(int rpm=carRpm; rpm <= actualRpm ; rpm+=15){
+
+			  RpmGauge.Kolor.SetColor(181, 230, 29);
+			  RpmGauge.Draw(LCD1);
+			  RpmGauge.Rotate(0.5, RpmAxis);
+
+		  }
+		 carRpm = actualRpm;
+	  }else if(carRpm > actualRpm){
+		  for(int rpm=carRpm; rpm >= actualRpm ; rpm-=15){
+
+			  RpmGauge.Kolor.SetColor(109,146,146);
+			  RpmGauge.Rotate(-0.5, RpmAxis);
+			  RpmGauge.Draw(LCD1);
+		  }
+
+		  carRpm = actualRpm;
 	  }
 
-	  Kwadrat1.Rotate(5, Axis2);
-	  Kwadrat2.Rotate(-5, Axis2);
-
-	  BtModule.DataSend(&btData, 1);
-
+	  //actualRpm = Meriva.GetRPM(BtModule);
+	  //if(actualRpm > 5500) actualRpm = 5500;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -12,6 +12,7 @@
 
 enum MODE:uint8_t {DATA, AT};
 enum ROLE:uint8_t {SLAVE, MASTER};
+enum STATUS:uint8_t {OK, ERR};
 
 class HC05{
 
@@ -22,15 +23,21 @@ public:
 	void DataSend(uint8_t *Data, uint8_t n);
 	void DataReceive(uint8_t *Data, uint8_t n);
 
-	uint8_t SetMode(MODE);
+	STATUS SetMode(MODE);
 
-	void ATSetName(uint8_t *Name, uint8_t n);
-	void ATUartBaudrate(uint16_t Baudrate, uint8_t Parity, uint8_t Odd);
+	STATUS ATSetName(uint8_t *Name, uint8_t n);
+	STATUS ATUartBaudrate(uint16_t Baudrate, uint8_t Parity, uint8_t Odd);
 
-	void ATSetRole(ROLE);
-	void ATPair(uint8_t *Address);
+	STATUS ATSetRole(ROLE);
+	STATUS ATPair(uint8_t *Address);
+	STATUS  ATInit();
+	STATUS ATBind(uint8_t *Address);
+	STATUS ATLink(uint8_t *Address);
+	STATUS ATCmode(uint8_t Cmode);
+	STATUS ATClearPairList();
 
-	void ATReset();
+	STATUS ATReset();
+
 	void ATSetDefault();
 
 protected:

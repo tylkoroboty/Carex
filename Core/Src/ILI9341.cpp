@@ -569,7 +569,7 @@ void Line::Draw(ILI9341 LCD){
 
 		float t;
 
-		if(abs(Dif.GetX())>abs(Dif.GetY())){
+		if(abs(Dif.GetX())>=abs(Dif.GetY())){
 			if(Dif.GetX() < 0) ChangeDir();
 				/* Kąt nachylenia jest mniejszy lub równy 45 deg */
 				/*Iterujemy po x */
@@ -621,6 +621,8 @@ class Rectangle : public Shape{
 		void Set(Pixel LeftUp, Pixel RightDown);
 		void Set(uint16_t LeftUpX, uint16_t LeftUpY, uint16_t RightDownX, uint16_t RightDownY);
 		void Set(Pixel LeftUp, Pixel RightUp, Pixel RightDown, Pixel LeftDown);
+		void SetSize(uint8_t size);
+		uint8_t GetSize();
 
 		void Rotate(double angle, Pixel axis);
 
@@ -637,6 +639,7 @@ class Rectangle : public Shape{
 		Pixel itsLeftDown;
 
 		bool itsFill = 0;
+		uint8_t itsSize = 1;
 };
 
 void Rectangle::Set(uint16_t LeftUpX, uint16_t LeftUpY, uint16_t RightDownX, uint16_t RightDownY){
@@ -671,6 +674,14 @@ bool Rectangle::IsFilled(){
 	return itsFill;
 }
 
+void Rectangle::SetSize(uint8_t size){
+	itsSize = size;
+}
+
+uint8_t Rectangle::GetSize(){
+	return itsSize;
+}
+
 void Rectangle::Draw(ILI9341 LCD){
 
 	Pixel A = itsLeftUp;
@@ -678,36 +689,44 @@ void Rectangle::Draw(ILI9341 LCD){
 	Pixel C = itsRightDown;
 	Pixel D = itsLeftDown;
 
+	Pixel X;
+	Pixel Y;
+
 	Line tempLine;
 	tempLine.Kolor = Kolor;
 
 	if(IsFilled()){
 
-		for(int x = itsLeftUp.GetX(); x<itsRightDown.GetX();++x)
-		{
-			tempLine.SetA(x,itsLeftUp.GetY());
-			tempLine.SetB(x,itsRightDown.GetY());
-			tempLine.Draw(LCD);
-		}
-
 	}
 	else{
 
-		tempLine.SetA(A);
-		tempLine.SetB(B);
-		tempLine.Draw(LCD);
+		for(uint8_t i=0; i<itsSize; ++i){
 
-		tempLine.SetA(B);
-		tempLine.SetB(C);
-		tempLine.Draw(LCD);
+			X.Set(A.GetX()-i, A.GetY()-i);
+			Y.Set(B.GetX()-i, B.GetY()-i);
+			tempLine.SetA(X);
+			tempLine.SetB(Y);
+			tempLine.Draw(LCD);
 
-		tempLine.SetA(C);
-		tempLine.SetB(D);
-		tempLine.Draw(LCD);
+			X.Set(B.GetX()-i, B.GetY()-i);
+			Y.Set(C.GetX()-i, C.GetY()-i);
+			tempLine.SetA(X);
+			tempLine.SetB(Y);
+			tempLine.Draw(LCD);
 
-		tempLine.SetA(D);
-		tempLine.SetB(A);
-		tempLine.Draw(LCD);
+			X.Set(C.GetX()-i, C.GetY()-i);
+			Y.Set(D.GetX()-i, D.GetY()-i);
+			tempLine.SetA(X);
+			tempLine.SetB(Y);
+			tempLine.Draw(LCD);
+
+			X.Set(D.GetX()-i, D.GetY()-i);
+			Y.Set(A.GetX()-i, A.GetY()-i);
+			tempLine.SetA(X);
+			tempLine.SetB(Y);
+			tempLine.Draw(LCD);
+
+			}
 		}
 
 
