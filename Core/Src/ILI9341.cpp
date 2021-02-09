@@ -408,6 +408,7 @@ class Line : public Shape{
 		void SetA(float Ax, float Ay);
 		void SetB(Pixel B);
 		void SetB(float Bx, float By);
+		void Set(float Ax, float Ay, float Bx, float By);
 
 		Pixel GetA();
 		Pixel GetB();
@@ -467,6 +468,12 @@ void Line::SetB(float Bx, float By){
 
 void Line::SetB(Pixel PointB){
 	itsB= PointB;
+}
+
+void Line::Set(float Ax, float Ay, float Bx, float By){
+	itsA.Set(Ax,Ay);
+	itsB.Set(Bx,By);
+
 }
 
 float Line::GetL(){
@@ -758,3 +765,4 @@ void Rectangle::Rotate(double angle, Pixel axis){
 	itsRightUp = tempLine.GetA();
 	itsRightDown = tempLine.GetB();
 }
+

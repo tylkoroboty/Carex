@@ -5,24 +5,21 @@
  *      Author: mikol
  */
 #include "stm32f4xx_hal.h"
-#include <HC05.hpp>
-
-#ifndef INC_OBD_HPP_
-#define INC_OBD_HPP_
-
+#include "RN42.hpp"
 
 class Obd{
-	public:
-		uint16_t GetRPM(HC05 BT);
-		uint8_t GetSpeed(HC05 BT);
-		int GetEngineCollantTemp();
-		int GetIntakeTemp();
-		int GetAmbientTemp();
-		int GetEngineOilTemp();
-	private:
-		void SendData(HC05 BT,uint8_t* data, uint8_t n);
-		void ReadData(HC05 BT,uint8_t* data, uint8_t n);
-		void Eol(HC05 BT);
+public:
+	uint16_t GetRPM(BTmodule *BT);
+	uint8_t GetSpeed(BTmodule *BT);
+	int GetEngineCollantTemp();
+	int GetIntakeTemp();
+	int GetAmbientTemp();
+	int GetEngineOilTemp();
+	uint8_t ASCII2HEX(uint8_t *tab);
+
+private:
+	void SendData(BTmodule *BT,char* data);
+	void ReadData(BTmodule *BT,char* data);
+	void Eol(BTmodule *BT);
 };
 
-#endif /* INC_OBD_HPP_ */

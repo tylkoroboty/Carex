@@ -23,8 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <ILI9341.hpp>
-#include <HC05.hpp>
-#include <Obd.hpp>
+#include <RN42.hpp>
+//#include <Obd.hpp>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -136,10 +136,10 @@ int main(void)
   Pixel RpmAxis;
   RpmAxis.Set(160, 10);
 
- Rectangle Kontrolka_BT;
- Kontrolka_BT.Set(20,200,40,220);
- Kontrolka_BT.Kolor.SetColor(255, 0, 0);
- Kontrolka_BT.SetSize(5);
+ Rectangle Kontrolka_Pair;
+ Kontrolka_Pair.Set(20,200,40,220);
+ Kontrolka_Pair.Kolor.SetColor(255, 0, 0);
+ Kontrolka_Pair.SetSize(5);
 
  uint16_t carRpm=0;
  uint16_t actualRpm=0;
@@ -157,72 +157,39 @@ int main(void)
 
  LCD1.SetBackgroundColor(17, 66, 56);
 
- Obd Meriva;
+ //Obd Meriva;
+
+ uint8_t error=0;
 
 /* Bluetooth Hardware Configuration */
 
- uint8_t SlaveAddress[] = "98D3,31,FB8284";
+ RN42 BT;
 
- HC05 BtModule;
+ char* SlaveAddress;
 
- BtModule.SetKey(UART_5_KEY_Pin, UART_5_KEY_GPIO_Port);
- BtModule.SetUart(&huart5);
+ char OBDAddress[] = "001DA568988B";
+ char PCAddress[] = "2016D827CE16";
 
+ SlaveAddress = PCAddress;
 /* END of Bluetooth Configuration */
 
 /* Bluetooth Software configuration */
 
- Kontrolka_BT.Draw(LCD1);
+ BT.SetUART(&huart5);
+ BT.Connect(SlaveAddress);
 
- for(uint8_t attempt=0; attempt<150; attempt++)
- {
-	 if(BtModule.SetMode(AT)) Kontrolka_BT.Kolor.SetColor(255, 51, 0);
-	 else{
-		 Kontrolka_BT.Kolor.SetColor(102, 255, 51);
-		 Kontrolka_BT.Draw(LCD1);
-		 break;
-	 }
+ char message[]= "Hello";
+ int messagesize = sizeof(message);
+ BT.Send((uint8_t *)message,messagesize);
 
-	 /* Try to reset with AT commands after every 15 attempts */
-	 //if(!(attempt%15)) BtModule.ATReset();
- }
+Kontrolka_Pair.Kolor.SetColor(255, 51, 0);
 
-
- STATUS RSP;
-
- RSP=BtModule.ATSetRole(MASTER);
- RSP=BtModule.ATReset();
-
- RSP=BtModule.ATClearPairList();
- RSP=BtModule.ATCmode(0);
-
- HAL_Delay(100);
-
- RSP=BtModule.ATInit();
- HAL_Delay(100);
-
- for(uint8_t i=0; i<25; i++){
-	 if(!BtModule.ATBind(SlaveAddress)) break;
-	 HAL_Delay(100);
- }
-
- RSP=BtModule.ATPair(SlaveAddress);
-
- RSP=BtModule.ATLink(SlaveAddress);
-
- if(RSP) Kontrolka_BT.Kolor.SetColor(255, 51, 0);
- else Kontrolka_BT.Kolor.SetColor(0, 102, 255);
-
- Kontrolka_BT.Draw(LCD1);
-
- BtModule.SetMode(DATA);
+ Kontrolka_Pair.Draw(LCD1);
 
  /* END of Bluetooth Software Configuration */
 
- HAL_Delay(3000);
 
- uint8_t Conncted[] = "Connected";
- BtModule.DataSend(Conncted, 9);
+ HAL_Delay(3000);
 
  /* USER CODE END 2 */
 
@@ -251,7 +218,7 @@ for(uint16_t n=5010;n>0;n-=15){
 	  }
 
 	  if(carRpm < actualRpm){
-		  for(int rpm=carRpm; rpm <= actualRpm ; rpm+=15){
+		  for(int rpm=carRpm; rpm <= actualRpm ; rpm+=20){
 
 			  RpmGauge.Kolor.SetColor(181, 230, 29);
 			  RpmGauge.Draw(LCD1);
@@ -260,18 +227,17 @@ for(uint16_t n=5010;n>0;n-=15){
 		  }
 		 carRpm = actualRpm;
 	  }else if(carRpm > actualRpm){
-		  for(int rpm=carRpm; rpm >= actualRpm ; rpm-=15){
+		  for(int rpm=carRpm; rpm >= actualRpm ; rpm-=20){
 
 			  RpmGauge.Kolor.SetColor(109,146,146);
-			  RpmGauge.Rotate(-0.5, RpmAxis);
+			  RpmGauge.Rotate(-5, RpmAxis);
 			  RpmGauge.Draw(LCD1);
 		  }
 
 		  carRpm = actualRpm;
 	  }
 
-	  //actualRpm = Meriva.GetRPM(BtModule);
-	  //if(actualRpm > 5500) actualRpm = 5500;
+	  if(actualRpm > 5500) actualRpm = 5500;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
