@@ -9,7 +9,9 @@ It is device to collect data from my Opel Meriva A 2003 1.6
 * Line
 * Rectangular
 
-### HC-05 Module controll
+### RN4 Module Control //
+(HC-05 changed becouse of link ELM327 issue)
+
 
 ### OBD diagnostic class //Not tested yet
 
