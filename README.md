@@ -9,7 +9,7 @@ It is device to collect data from my Opel Meriva A 2003 1.6
 * Line
 * Rectangular
 
-### RN4 Module Control //
+### RN42 Module Control //
 (HC-05 changed becouse of link ELM327 issue)
 
 
