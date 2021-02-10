@@ -10,17 +10,16 @@ enum STATUS: uint8_t {OK, ERR};
 
 class BTmodule{
 	public:
-	STATUS Connect();
-	STATUS Send();
-	STATUS Receive();
+	virtual STATUS Connect(char* BluetoothAddress){};
+	virtual STATUS Send(uint8_t* data,int size){};
+	virtual STATUS Receive(uint8_t* data, int size){};
 };
 
 class RN42: public BTmodule{
 	public:
 	STATUS Connect(char* BluetoothAddress);
-	STATUS Send(uint8_t data);
 	STATUS Send(uint8_t* data,int size);
-	STATUS Receive(uint8_t* data);
+	STATUS Receive(uint8_t* data, int size);
 
 	STATUS SetUART(UART_HandleTypeDef *huart);
 	private:

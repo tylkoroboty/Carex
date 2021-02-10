@@ -21,6 +21,17 @@ STATUS RN42::Send(uint8_t* data, int size){
 	else return ERR;
 }
 
+STATUS RN42::Receive(uint8_t *data, int size){
+
+	int resp=0;
+
+	resp = HAL_UART_Receive(itsuart, data, size, 100);
+
+	if(resp==0) return OK;
+	return ERR;
+
+}
+
 STATUS RN42::Connect(char * Address){
 	char cmd[] = "$$$";
 	char connect[] = "C,";

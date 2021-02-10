@@ -23,7 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <ILI9341.hpp>
-#include <RN42.hpp>
+//#include <RN42.hpp> Included in OBD.hpp
+#include <Obd.hpp>
 //#include <Obd.hpp>
 /* USER CODE END Includes */
 
@@ -157,7 +158,7 @@ int main(void)
 
  LCD1.SetBackgroundColor(17, 66, 56);
 
- //Obd Meriva;
+ Obd Meriva;
 
  uint8_t error=0;
 
@@ -238,6 +239,12 @@ for(uint16_t n=5010;n>0;n-=15){
 	  }
 
 	  if(actualRpm > 5500) actualRpm = 5500;
+
+	  /* OBD Getting measurements*/
+	  actualRpm = Meriva.GetRPM(&BT);
+	  HAL_Delay(1000);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
