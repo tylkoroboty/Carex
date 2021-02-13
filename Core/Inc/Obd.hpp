@@ -15,6 +15,8 @@ class Obd{
 		int GetIntakeTemp();
 		int GetAmbientTemp();
 		int GetEngineOilTemp();
+
+		uint8_t IsActive(BTmodule *BT);
 		uint8_t ASCII2HEX(uint8_t *tab);
 
 	private:

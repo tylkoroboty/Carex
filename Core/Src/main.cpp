@@ -139,11 +139,11 @@ int main(void)
 
  Rectangle Kontrolka_Pair;
  Kontrolka_Pair.Set(20,200,40,220);
- Kontrolka_Pair.Kolor.SetColor(255, 0, 0);
+ Kontrolka_Pair.Kolor.SetColor(255, 255, 255);
  Kontrolka_Pair.SetSize(5);
 
- uint16_t carRpm=0;
- uint16_t actualRpm=0;
+ int carRpm=0;
+ int actualRpm=0;
 
  Line RpmGauge;
  RpmGauge.SetA(80, 10);
@@ -171,26 +171,36 @@ int main(void)
  char OBDAddress[] = "001DA568988B";
  char PCAddress[] = "2016D827CE16";
 
- SlaveAddress = PCAddress;
-/* END of Bluetooth Configuration */
+ //SlaveAddress = PCAddress;
+SlaveAddress = OBDAddress;
+ /* END of Bluetooth Configuration */
+
 
 /* Bluetooth Software configuration */
 
  BT.SetUART(&huart5);
- BT.Connect(SlaveAddress);
-
- char message[]= "Hello";
- int messagesize = sizeof(message);
- BT.Send((uint8_t *)message,messagesize);
-
-Kontrolka_Pair.Kolor.SetColor(255, 51, 0);
 
  Kontrolka_Pair.Draw(LCD1);
+ BT.Connect(SlaveAddress);
+
+
+ while(Meriva.IsActive(&BT) != 0){
+	 Kontrolka_Pair.Kolor.SetColor(255, 0, 0);
+	 Kontrolka_Pair.Draw(LCD1);
+
+	 BT.Reset();
+	 HAL_Delay(1000);
+	 BT.Connect(SlaveAddress);
+
+ }
+
+Kontrolka_Pair.Kolor.SetColor(0, 51, 255);
+Kontrolka_Pair.Draw(LCD1);
 
  /* END of Bluetooth Software Configuration */
 
 
- HAL_Delay(3000);
+ // HAL_Delay(3000);
 
  /* USER CODE END 2 */
 
@@ -198,20 +208,34 @@ Kontrolka_Pair.Kolor.SetColor(255, 51, 0);
   /* USER CODE BEGIN WHILE */
 
 for(uint16_t n=0;n<5000;n+=15){
-	RpmGauge.Draw(LCD1);
 	RpmGauge.Kolor.SetColor(181, 230, 29);
+	RpmGauge.Draw(LCD1);
 	RpmGauge.Rotate(0.5, RpmAxis);
 }
 
 for(uint16_t n=5010;n>0;n-=15){
-	RpmGauge.Draw(LCD1);
 	RpmGauge.Kolor.SetColor(109,146,146);
+	RpmGauge.Draw(LCD1);
 	RpmGauge.Rotate(-0.5, RpmAxis);
 }
 
   while (1)
   {
 	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+
+		 if(Meriva.IsActive(&BT)>0){
+			 Kontrolka_Pair.Kolor.SetColor(255, 0, 0);
+			 Kontrolka_Pair.Draw(LCD1);
+
+			 BT.Reset();
+			 HAL_Delay(1000);
+			 BT.Connect(SlaveAddress);
+		 }
+		 else{
+			 Kontrolka_Pair.Kolor.SetColor(0, 51, 255);
+			 Kontrolka_Pair.Draw(LCD1);
+		 }
+
 
 	  for(int i=0; i<pShapeNum;i++)
 	  {
@@ -231,10 +255,10 @@ for(uint16_t n=5010;n>0;n-=15){
 		  for(int rpm=carRpm; rpm >= actualRpm ; rpm-=20){
 
 			  RpmGauge.Kolor.SetColor(109,146,146);
-			  RpmGauge.Rotate(-5, RpmAxis);
 			  RpmGauge.Draw(LCD1);
+			  RpmGauge.Rotate(-0.5, RpmAxis);
 		  }
-
+		  RpmGauge.Draw(LCD1);
 		  carRpm = actualRpm;
 	  }
 
@@ -242,7 +266,9 @@ for(uint16_t n=5010;n>0;n-=15){
 
 	  /* OBD Getting measurements*/
 	  actualRpm = Meriva.GetRPM(&BT);
-	  HAL_Delay(1000);
+//	  if(actualRpm == 0) actualRpm = 1024;
+//	  else actualRpm = 0;
+	  HAL_Delay(2000);
 
 
     /* USER CODE END WHILE */

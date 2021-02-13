@@ -13,6 +13,7 @@ class BTmodule{
 	virtual STATUS Connect(char* BluetoothAddress){};
 	virtual STATUS Send(uint8_t* data,int size){};
 	virtual STATUS Receive(uint8_t* data, int size){};
+	virtual STATUS Reset(){};
 };
 
 class RN42: public BTmodule{
@@ -20,6 +21,7 @@ class RN42: public BTmodule{
 	STATUS Connect(char* BluetoothAddress);
 	STATUS Send(uint8_t* data,int size);
 	STATUS Receive(uint8_t* data, int size);
+	STATUS Reset();
 
 	STATUS SetUART(UART_HandleTypeDef *huart);
 	private:
