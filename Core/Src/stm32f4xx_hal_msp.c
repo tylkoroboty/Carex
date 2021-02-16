@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
+extern DMA_HandleTypeDef hdma_uart5_rx;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -574,6 +575,28 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+    /* UART5 DMA Init */
+    /* UART5_RX Init */
+    hdma_uart5_rx.Instance = DMA1_Stream0;
+    hdma_uart5_rx.Init.Channel = DMA_CHANNEL_4;
+    hdma_uart5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_uart5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_uart5_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_uart5_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_uart5_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_uart5_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_uart5_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_uart5_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_uart5_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(huart,hdmarx,hdma_uart5_rx);
+
+    /* UART5 interrupt Init */
+    HAL_NVIC_SetPriority(UART5_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(UART5_IRQn);
   /* USER CODE BEGIN UART5_MspInit 1 */
 
   /* USER CODE END UART5_MspInit 1 */
@@ -629,6 +652,11 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
 
+    /* UART5 DMA DeInit */
+    HAL_DMA_DeInit(huart->hdmarx);
+
+    /* UART5 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(UART5_IRQn);
   /* USER CODE BEGIN UART5_MspDeInit 1 */
 
   /* USER CODE END UART5_MspDeInit 1 */
@@ -650,85 +678,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   /* USER CODE BEGIN USART1_MspDeInit 1 */
 
   /* USER CODE END USART1_MspDeInit 1 */
-  }
-
-}
-
-/**
-* @brief HCD MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hhcd: HCD handle pointer
-* @retval None
-*/
-void HAL_HCD_MspInit(HCD_HandleTypeDef* hhcd)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(hhcd->Instance==USB_OTG_HS)
-  {
-  /* USER CODE BEGIN USB_OTG_HS_MspInit 0 */
-
-  /* USER CODE END USB_OTG_HS_MspInit 0 */
-
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**USB_OTG_HS GPIO Configuration
-    PB12     ------> USB_OTG_HS_ID
-    PB13     ------> USB_OTG_HS_VBUS
-    PB14     ------> USB_OTG_HS_DM
-    PB15     ------> USB_OTG_HS_DP
-    */
-    GPIO_InitStruct.Pin = OTG_HS_ID_Pin|OTG_HS_DM_Pin|OTG_HS_DP_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF12_OTG_HS_FS;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = VBUS_HS_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(VBUS_HS_GPIO_Port, &GPIO_InitStruct);
-
-    /* Peripheral clock enable */
-    __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
-    /* USB_OTG_HS interrupt Init */
-    HAL_NVIC_SetPriority(OTG_HS_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
-  /* USER CODE BEGIN USB_OTG_HS_MspInit 1 */
-
-  /* USER CODE END USB_OTG_HS_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief HCD MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hhcd: HCD handle pointer
-* @retval None
-*/
-void HAL_HCD_MspDeInit(HCD_HandleTypeDef* hhcd)
-{
-  if(hhcd->Instance==USB_OTG_HS)
-  {
-  /* USER CODE BEGIN USB_OTG_HS_MspDeInit 0 */
-
-  /* USER CODE END USB_OTG_HS_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_USB_OTG_HS_CLK_DISABLE();
-
-    /**USB_OTG_HS GPIO Configuration
-    PB12     ------> USB_OTG_HS_ID
-    PB13     ------> USB_OTG_HS_VBUS
-    PB14     ------> USB_OTG_HS_DM
-    PB15     ------> USB_OTG_HS_DP
-    */
-    HAL_GPIO_DeInit(GPIOB, OTG_HS_ID_Pin|VBUS_HS_Pin|OTG_HS_DM_Pin|OTG_HS_DP_Pin);
-
-    /* USB_OTG_HS interrupt DeInit */
-    HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
-  /* USER CODE BEGIN USB_OTG_HS_MspDeInit 1 */
-
-  /* USER CODE END USB_OTG_HS_MspDeInit 1 */
   }
 
 }

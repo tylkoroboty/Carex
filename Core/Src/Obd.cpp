@@ -6,6 +6,7 @@
  */
 #include "stm32f4xx_hal.h"
 #include <Obd.hpp>
+#include <string.h>
 
 uint8_t Obd::ASCII2HEX(uint8_t *tab){
 
@@ -32,8 +33,8 @@ void Obd::SendData(BTmodule *BT,char* data, uint8_t n){
 	BT->Send((uint8_t*) data, n);
 }
 
-void Obd::ReadData(BTmodule *BT,char* data, uint8_t n){
-	BT->Receive((uint8_t*)data, n);
+void Obd::ReadData(BTmodule *BT,char* data, uint8_t n, uint32_t timeout){
+	BT->Receive((uint8_t*)data, n, timeout);
 }
 
 void Obd::Eol(BTmodule *BT){
@@ -46,51 +47,61 @@ void Obd::Eol(BTmodule *BT){
 
 uint16_t Obd::GetRPM(BTmodule *BT){
 	char PID[] = "010C";
+	char Searching[] = "SEARCHING...";
 	uint8_t PIDLen = 4;
 
-	int respLen = 2; //Response Lenght - 2bytes
-	int respPrefixLen = 2; //Prefix ex. [41 0C]
-
-	uint16_t Data[10];
-	char tempByte;
-	uint8_t tempData[2];
-	int maxDatalen = 10;
-
-	uint16_t rpm;
-
-	SendData(BT, PID, PIDLen);
-	Eol(BT);
-
 	int word,letter;
-	char iByte;
-	char rData[10][50];
-	int rDataLen[10];
+
+//	int respLen = 2; //Response Lenght - 2bytes
+//	int respPrefixLen = 2; //Prefix ex. [41 0C]
+
+//	uint16_t Data[10];
+//	char tempByte;
+//	uint8_t tempData[2];
+
+//	uint16_t rpm;
+	uint16_t rpmH,rpmL;
 
 	SendData(BT, PID, PIDLen);
 	Eol(BT);
 
-	HAL_Delay(1000);
+	int maxWordNum = 10;
+	int maxLetterNum = 50;
+	char rWord[10][50];
 
-	for(word=0; word<10; ++word){
-		for(letter=0; letter<50; ++letter){
-			ReadData(BT, &iByte, 1);
-			if(iByte == ' ' || iByte == '>' || iByte == '\r') break;
-			rData[word][letter] = iByte;
+	char rData[50];
+	int index = 0;
+
+	SendData(BT, PID, PIDLen);
+	Eol(BT);
+
+	ReadData(BT,rData,50,100);
+
+	/* Dividing read data on words */
+	for(word=0; word<maxWordNum; ++word){
+		for(letter=0; letter<maxLetterNum; ++letter){
+			if(rData[index] == ' ' || rData[index] == '>' || rData[index] == '\r') break;
+			rWord[word][letter]=rData[index];
+			index++;
 		}
-		rDataLen[word] = letter;
-		if(iByte == '>') break;
+		if(rData[index]== '>') break;
+		index++;
 	}
 
-
-	for(int i=0; i<letter-3; ++i){
-		if(rDataLen[1]>3) return 0;
-		if(rData[0][i] == '0' && rData[0][i+1] == '1' && rData[0][i+2] == '0' && rData[0][i+3] == 'C'){
-			uint16_t rpmH, rpmL;
-			rpmH = ASCII2HEX((uint8_t*)rData[3]);
-			rpmL = ASCII2HEX((uint8_t*)rData[4]);
-			return (256*rpmH+rpmL)/4;
-		}
+	if((strncmp((const char*)rWord[1],Searching,6))==0){
+		HAL_Delay(5000);
+		ReadData(BT,rData,30,100);
+		return 0;
 	}
+
+	if((strncmp((const char*)rWord[0],PID,4) == 0) && word>=5){
+		rpmH = ASCII2HEX((uint8_t*)rWord[3]);
+		rpmL = ASCII2HEX((uint8_t*)rWord[4]);
+		return (256*rpmH+rpmL)/4;
+	}
+
+	ReadData(BT,rData,20,100);
+
 	return 0;
 //	for(int byteN=0; byteN<(respLen+2); ++byteN){
 //		for(int tempDataN=0; tempDataN<=maxDatalen; ++tempDataN){
@@ -137,7 +148,7 @@ uint8_t Obd::IsActive(BTmodule *BT){
 
 	for(word=0; word<10; ++word){
 		for(letter=0; letter<50; ++letter){
-			ReadData(BT, &iByte, 1);
+			ReadData(BT, &iByte, 1,100);
 			if(iByte == ' ' || iByte == '>' || iByte == '\n' || iByte == '\0') break;
 			rData[word][letter] = iByte;
 		}

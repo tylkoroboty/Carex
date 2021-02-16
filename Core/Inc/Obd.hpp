@@ -21,7 +21,7 @@ class Obd{
 
 	private:
 		void SendData(BTmodule *BT,char* data, uint8_t n);
-		void ReadData(BTmodule *BT,char* data, uint8_t n);
+		void ReadData(BTmodule *BT,char* data, uint8_t n, uint32_t timeout);
 		void Eol(BTmodule *BT);
 };
 

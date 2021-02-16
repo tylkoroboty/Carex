@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <ILI9341.hpp>
@@ -57,8 +58,7 @@ TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
-
-HCD_HandleTypeDef hhcd_USB_OTG_HS;
+DMA_HandleTypeDef hdma_uart5_rx;
 
 SDRAM_HandleTypeDef hsdram1;
 
@@ -69,6 +69,7 @@ ILI9341 LCD1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_CRC_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_FMC_Init(void);
@@ -77,7 +78,6 @@ static void MX_LTDC_Init(void);
 static void MX_SPI5_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_USB_OTG_HS_HCD_Init(void);
 static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 static void LCD1_Init(void);
@@ -101,7 +101,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-   HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -116,6 +116,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CRC_Init();
   MX_DMA2D_Init();
   MX_FMC_Init();
@@ -124,7 +125,6 @@ int main(void)
   MX_SPI5_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
-  MX_USB_OTG_HS_HCD_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 
@@ -171,7 +171,7 @@ int main(void)
  char OBDAddress[] = "001DA568988B";
  char PCAddress[] = "2016D827CE16";
 
- //SlaveAddress = PCAddress;
+//SlaveAddress = PCAddress;
 SlaveAddress = OBDAddress;
  /* END of Bluetooth Configuration */
 
@@ -181,7 +181,15 @@ SlaveAddress = OBDAddress;
  BT.SetUART(&huart5);
 
  Kontrolka_Pair.Draw(LCD1);
- BT.Connect(SlaveAddress);
+
+ /* waiting for BT Ready */
+ while(1){
+		 if(BT.Connect(SlaveAddress)==OK){
+			 if(BT.IsConnected()==OK) break;
+		 }
+		 BT.Reset();
+ }
+
 
 
  while(Meriva.IsActive(&BT) != 0){
@@ -202,7 +210,7 @@ Kontrolka_Pair.Draw(LCD1);
 
  // HAL_Delay(3000);
 
- /* USER CODE END 2 */
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -268,7 +276,6 @@ for(uint16_t n=5010;n>0;n-=15){
 	  actualRpm = Meriva.GetRPM(&BT);
 //	  if(actualRpm == 0) actualRpm = 1024;
 //	  else actualRpm = 0;
-	  HAL_Delay(2000);
 
 
     /* USER CODE END WHILE */
@@ -671,36 +678,18 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
-  * @brief USB_OTG_HS Initialization Function
-  * @param None
-  * @retval None
+  * Enable DMA controller clock
   */
-static void MX_USB_OTG_HS_HCD_Init(void)
+static void MX_DMA_Init(void)
 {
 
-  /* USER CODE BEGIN USB_OTG_HS_Init 0 */
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
-  /* USER CODE END USB_OTG_HS_Init 0 */
-
-  /* USER CODE BEGIN USB_OTG_HS_Init 1 */
-
-  /* USER CODE END USB_OTG_HS_Init 1 */
-  hhcd_USB_OTG_HS.Instance = USB_OTG_HS;
-  hhcd_USB_OTG_HS.Init.Host_channels = 12;
-  hhcd_USB_OTG_HS.Init.speed = HCD_SPEED_FULL;
-  hhcd_USB_OTG_HS.Init.dma_enable = DISABLE;
-  hhcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
-  hhcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
-  hhcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
-  hhcd_USB_OTG_HS.Init.vbus_sensing_enable = DISABLE;
-  hhcd_USB_OTG_HS.Init.use_external_vbus = DISABLE;
-  if (HAL_HCD_Init(&hhcd_USB_OTG_HS) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USB_OTG_HS_Init 2 */
-
-  /* USER CODE END USB_OTG_HS_Init 2 */
+  /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 
 }
 
@@ -813,6 +802,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : OTG_HS_ID_Pin OTG_HS_DM_Pin OTG_HS_DP_Pin */
+  GPIO_InitStruct.Pin = OTG_HS_ID_Pin|OTG_HS_DM_Pin|OTG_HS_DP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF12_OTG_HS_FS;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : VBUS_HS_Pin */
+  GPIO_InitStruct.Pin = VBUS_HS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(VBUS_HS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TE_Pin */
   GPIO_InitStruct.Pin = TE_Pin;
