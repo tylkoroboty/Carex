@@ -231,18 +231,18 @@ for(uint16_t n=5010;n>0;n-=15){
   {
 	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
-		 if(Meriva.IsActive(&BT)>0){
-			 Kontrolka_Pair.Kolor.SetColor(255, 0, 0);
-			 Kontrolka_Pair.Draw(LCD1);
-
-			 BT.Reset();
-			 HAL_Delay(1000);
-			 BT.Connect(SlaveAddress);
-		 }
-		 else{
-			 Kontrolka_Pair.Kolor.SetColor(0, 51, 255);
-			 Kontrolka_Pair.Draw(LCD1);
-		 }
+//		 if(Meriva.IsActive(&BT)>0){
+//			 Kontrolka_Pair.Kolor.SetColor(255, 0, 0);
+//			 Kontrolka_Pair.Draw(LCD1);
+//
+//		//	 BT.Reset();
+//		//	 HAL_Delay(1000);
+//			// BT.Connect(SlaveAddress);
+//		 }
+//		 else{
+//			 Kontrolka_Pair.Kolor.SetColor(0, 51, 255);
+//			 Kontrolka_Pair.Draw(LCD1);
+//		 }
 
 
 	  for(int i=0; i<pShapeNum;i++)

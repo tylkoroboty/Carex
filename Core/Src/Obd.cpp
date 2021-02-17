@@ -65,9 +65,9 @@ uint16_t Obd::GetRPM(BTmodule *BT){
 	SendData(BT, PID, PIDLen);
 	Eol(BT);
 
-	int maxWordNum = 10;
-	int maxLetterNum = 50;
-	char rWord[10][50];
+	const int maxWordNum = 10;
+	const int maxLetterNum = 30;
+	char rWord[maxWordNum][maxLetterNum];
 
 	char rData[50];
 	int index = 0;
@@ -75,7 +75,7 @@ uint16_t Obd::GetRPM(BTmodule *BT){
 	SendData(BT, PID, PIDLen);
 	Eol(BT);
 
-	ReadData(BT,rData,50,100);
+	ReadData(BT,rData,30,400);
 
 	/* Dividing read data on words */
 	for(word=0; word<maxWordNum; ++word){
